@@ -13,28 +13,28 @@ typeset -ga _GEOMETRY_PROMPT_PLUGINS
 # Set up default plugins
 geometry_plugin_setup() {
   for plugin in $GEOMETRY_PROMPT_PLUGINS; do
-    source "$GEOMETRY_ROOT/plugins/$plugin/plugin.zsh"
+    test -f "$GEOMETRY_ROOT/plugins/${plugin#+}/plugin.zsh" && source $_
   done
 }
 
 # Registers a plugin
 geometry_plugin_register() {
   if [[ $# -eq 0 ]]; then
-    echo "Error: Missing argument."
+    >&2 echo "Error: Missing argument."
     return 1
   fi
 
   local plugin=$1
   # Check plugin wasn't registered before
   if [[ ! $_GEOMETRY_PROMPT_PLUGINS[(r)$plugin] == "" ]]; then
-    echo "Error: Plugin $plugin already registered."
+    >&2 echo "Warning: Plugin $plugin already registered."
     return 1
   fi
 
   # Check plugin has been sourced
   local plugin_setup_function="geometry_prompt_${plugin}_setup"
   if [[ $+functions[$plugin_setup_function] == 0 ]]; then
-    echo "Error: Plugin $plugin not available."
+    >&2 echo "Error: Plugin $plugin not available."
     return 1
   fi
 
@@ -48,7 +48,7 @@ geometry_plugin_unregister() {
   local plugin=$1
   # Check plugin is registered
   if [[ $_GEOMETRY_PROMPT_PLUGINS[(r)$plugin] == "" ]]; then
-    echo "Error: Plugin $plugin not registered."
+    >&2 echo "Error: Plugin $plugin not registered."
     return 1
   fi
 
@@ -64,15 +64,29 @@ geometry_plugin_list() {
   echo ${(j:\n:)_GEOMETRY_PROMPT_PLUGINS}
 }
 
+# Checks a registered plugin
+geometry_plugin_check() {
+  local plugin=$1
+
+  [ $GEOMETRY_PROMPT_PLUGINS[(r)+$plugin] ] && return 0
+
+  (( $+functions[geometry_prompt_${plugin}_check] )) || return 0
+
+  geometry_prompt_${plugin}_check || return 1
+}
+
 # Renders the registered plugins
 geometry_plugin_render() {
   local rprompt=""
   local render=""
 
   for plugin in $_GEOMETRY_PROMPT_PLUGINS; do
+    geometry_plugin_check $plugin || continue
+
     render=$(geometry_prompt_${plugin}_render)
     if [[ -n $render ]]; then
-      rprompt+="$render$GEOMETRY_PLUGIN_SEPARATOR"
+      [[ -n $rprompt ]] && rprompt+="$GEOMETRY_PLUGIN_SEPARATOR"
+      rprompt+="$render"
     fi
   done
 

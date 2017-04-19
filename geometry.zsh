@@ -33,15 +33,16 @@ PROMPT_GEOMETRY_RPROMPT_ASYNC=${PROMPT_GEOMETRY_RPROMPT_ASYNC:-true}
 PROMPT_GEOMETRY_ENABLE_PLUGINS=${PROMPT_GEOMETRY_ENABLE_PLUGINS:-true}
 
 # Misc configurations
-GEOMETRY_PROMPT_PREFIX=${GEOMETRY_PROMPT_PREFIX:-$'\n'}
+GEOMETRY_PROMPT_PREFIX=${GEOMETRY_PROMPT_PREFIX-$'\n'}
 GEOMETRY_PROMPT_SUFFIX=${GEOMETRY_PROMPT_SUFFIX:-''}
 
 # Show current command in title
 prompt_geometry_set_cmd_title() {
   local COMMAND="${2}"
   local CURR_DIR="${PWD##*/}"
+  setopt localoptions no_prompt_subst
   print -n '\e]0;'
-  print -Pn '$COMMAND @ $CURR_DIR'
+  print -rn "$COMMAND @ $CURR_DIR"
   print -n '\a'
 }
 
@@ -57,6 +58,10 @@ prompt_geometry_render_rprompt() {
     geometry_plugin_render
 }
 
+prompt_geometry_render_lprompt() {
+  echo "$GEOMETRY_PROMPT_PREFIX %${#PROMPT_SYMBOL}{%(?.$GEOMETRY_PROMPT.$GEOMETRY_EXIT_VALUE)%} %F{$GEOMETRY_COLOR_DIR}%3~%f $GEOMETRY_PROMPT_SUFFIX"
+}
+
 prompt_geometry_render() {
   if [ $? -eq 0 ] ; then
     PROMPT_SYMBOL=$GEOMETRY_SYMBOL_PROMPT
@@ -64,7 +69,7 @@ prompt_geometry_render() {
     PROMPT_SYMBOL=$GEOMETRY_SYMBOL_EXIT_VALUE
   fi
 
-  PROMPT="$GEOMETRY_PROMPT_PREFIX %${#PROMPT_SYMBOL}{%(?.$GEOMETRY_PROMPT.$GEOMETRY_EXIT_VALUE)%} %F{$GEOMETRY_COLOR_DIR}%3~%f $GEOMETRY_PROMPT_SUFFIX"
+  PROMPT="$(prompt_geometry_render_lprompt)"
 
   PROMPT2=" $GEOMETRY_SYMBOL_RPROMPT "
 
@@ -74,13 +79,13 @@ prompt_geometry_render() {
         # comes with newer git info
         RPROMPT=""
     else
+        setopt localoptions no_prompt_subst
         RPROMPT="$(prompt_geometry_render_rprompt)"
     fi
   fi
 }
 
 prompt_geometry_setup() {
-  setopt PROMPT_SUBST
   zmodload zsh/datetime
   autoload -U add-zsh-hook
   if $PROMPT_GEOMETRY_ENABLE_PLUGINS; then
