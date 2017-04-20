@@ -1,6 +1,7 @@
 # geometry
 
-[![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/geometry-zsh/Lobby)
+[![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/geometry-zsh/Lobby)
+[![GitHub release](https://img.shields.io/github/release/frmendes/geometry.svg)](https://github.com/frmendes/geometry/releases/latest)
 
 geometry is a minimalistic, fully customizable zsh prompt theme.
 
@@ -20,6 +21,7 @@ geometry starts small, with good defaults, and allows you to customize it at you
 
 *K, I'm sold. Beam me up, Scotty.*
 
+<<<<<<< HEAD
 ### antigen installation
 
 Just add `antigen theme frmendes/geometry` to your `.zshrc`.
@@ -28,9 +30,22 @@ Just add `antigen theme frmendes/geometry` to your `.zshrc`.
 
 Move the entire `geometry` folder to `$HOME/.oh-my-zsh/custom/themes`, and set `ZSH_THEME="geometry/geometry"` in your `.zshrc`.
 
-### zplug installation
 
-Add `zplug "frmendes/geometry"` to your `.zshrc`
+### Install using antigen
+
+Just add `antigen theme frmendes/geometry` to your `.zshrc`.
+
+
+### Install using oh-my-zsh
+
+Move the entire `geometry` folder to `$HOME/.oh-my-zsh/custom/themes`, and set `ZSH_THEME="geometry/geometry"` in your `.zshrc`.
+
+
+### Install using zplug
+
+Add `zplug "frmendes/geometry"` to your `.zshrc`.
+>>>>>>> origin
+
 
 ## Dependencies
 
@@ -54,27 +69,35 @@ In a nutshell, it can:
 - set the terminal title to current command and directory
 - make you the coolest hacker in the whole Starbucks
 
-The right side prompt is print asynchronously, so you know it's going to be
+The right side prompt is printed asynchronously, so you know it's going to be
 fast™.
 
 ## Plugins
 
-geometry has an internal plugin architecture. The default plugins are `exec_time`, `git` and `hg`. But you can enable a variety of built-in plugins just by setting the `GEOMETRY_PROMPT_PLUGINS` variable in your own configuration files:
+geometry has an internal plugin architecture. The default plugins are `exec_time`, `git` and `hg`.
+But you can enable a variety of built-in plugins just by setting the `GEOMETRY_PROMPT_PLUGINS` variable in your own configuration files:
 
 ```sh
 GEOMETRY_PROMPT_PLUGINS=(virtualenv docker_machine exec_time git hg)
 ```
 
-*Note: if you're not sure where to put geometry configs, just add them to your `.zshrc`*
+*Note: if you're not sure where to put geometry configs, just add them to your `.zshrc`*.
 
 These plugins will load and display on the right prompt. You can check the
 documentation and configuration for each specific plugin in the
 [plugins](/plugins) directory.
 
+Some plugins only render when you are in a given directory or in the presence of a given file.
+You can have those plugins always render by pinning a `+` before the name.
+
+```sh
+export GEOMETRY_PROMPT_PLUGINS=(exec_time git +rustup) # rustup will always render
+```
+
 geometry also supports your own custom plugins. See the plugin [documentation](/plugins/README.md) for
 instructions and examples.
 
-Please check out and share third-party plugins on our [Plugins wiki page](https://github.com/frmendes/geometry/wiki/Plugins)
+Please check out and share third-party plugins on our [Plugins wiki page](https://github.com/frmendes/geometry/wiki/Plugins).
 
 ## Configuration
 
@@ -127,7 +150,7 @@ GEOMETRY_PLUGIN_SEPARATOR=" "               # use ' ' to separate right prompt p
 
 #### Async `RPROMPT`
 
-geometry runs `RPROMPT` asynchronously to avoid blocking on costly operations. This is enabled by default but you can disable it by setting `PROMPT_GEOMETRY_RPROMPT_ASYNC` to `false`
+geometry runs `RPROMPT` asynchronously to avoid blocking on costly operations. This is enabled by default but you can disable it by setting `PROMPT_GEOMETRY_RPROMPT_ASYNC` to `false`.
 
 #### Randomly colorize prompt symbol
 
@@ -162,7 +185,7 @@ If you can provide info about your terminal, OS and zsh version it would be a gr
 
 **I have an idea for a feature, can I submit a PR?**
 
-Please do. geometry is a work in progress, if you want to help improve it, your
+Please do. geometry is a work in progress, so if you want to help improve it, your
 idea is welcome. We're not looking to add a lot of default features to not
 overload the theme. However, plugins are a great way of extending geometry
 without overloading it. If you have an idea for a plugin, feel free to
@@ -174,8 +197,6 @@ help you improve.
 There are always things we would like to improve. Feel free to jump in on any issue to tackle it or just to provide your feedback.
 
 As for PRs, we are currently looking to improve performance.
-
-If you want to help with plugins, we are looking to add Ruby and Node version displays.
 
 **Why doesn't my prompt look like the screenshots?**
 
@@ -194,13 +215,12 @@ variables before geometry is loaded**.
 
 This is a [known problem](https://github.com/frmendes/geometry/issues/3#issuecomment-244875921) due to the use of unicode characters. It should be fixed right now. If it persists, update geometry and check if the terminal version reported by zsh matches your terminal emulator reported version. Please comment on that thread if any new issues arise.
 
-**There are too many/few spaces after the symbol or the prompt**
+**There are too many/few spaces after the symbol or the prompt.**
 
-You're probably using a different prompt character. zsh has a few issues
-determining the length of the prompt and while it should work for most cases, if
-you changed the symbol to a different character (an example would be:  ☁︎ ), some extra spaces show up after the prompt. That problem is [documented here](https://github.com/frmendes/geometry/issues/3#issuecomment-245571623) and there is no known fix for it except on a case-by-case basis. You can add or remove any extra space on the `prompt_geometry_render` function, on `geometry.zsh`. If you find a universal solution, feel free to make a PR for it.
+You're probably using a different prompt character. zsh has a few issues determining the length of the prompt and while it should work for most cases, changing the symbol to a different character (an example would be:  ☁︎ )
+will result in a few extra spaces after the prompt. That problem is [documented here](https://github.com/frmendes/geometry/issues/3#issuecomment-245571623) and there is no known fix for it except on a case-by-case basis. You can add or remove any extra space through the `prompt_geometry_render` function in `geometry.zsh`. If you find a universal solution, feel free to make a PR for it.
 
-**The prompt is slow on large repos**
+**The prompt is slow on large repos.**
 
 This is also a known issue. Make sure you have `PROMPT_GEOMETRY_RPROMPT_ASYNC` set to `true` to avoid long waiting times. If the problem persists, our recommendation would be to disable the git time checks by setting `PROMPT_GEOMETRY_GIT_TIME` to `false`.
 
@@ -208,8 +228,17 @@ This is also a known issue. Make sure you have `PROMPT_GEOMETRY_RPROMPT_ASYNC` s
 
 Sure. It's [Roboto Mono](https://fonts.google.com/specimen/Roboto+Mono). Don't forget to use the [powerline patched version](https://github.com/powerline/fonts/tree/master/RobotoMono) if you want to use the default rebase symbol.
 
+**"Warning: Plugin <name> already registered." omg what is happening is the
+world going to end?**
+
+Well, yeah. Eventually. But this warning message doesn't mean anything is wrong.
+Feel free to relax. It shows when you load geometry twice. It was intended as a
+warning for faulty custom configuration, such as registering a plugin in two
+different places. If you do `source ~/.zshrc` it's perfectly normal to show up.
+See [this discussion](https://github.com/frmendes/geometry/issues/109#issuecomment-288997441) for more info.
+
 ## Maintainers
 
-geometry is currently maintained by [frmendes](https://github.com/frmendes) and [desyncr](https://github.com/desyncr).
+geometry is currently maintained by [frmendes](https://github.com/frmendes), [desyncr](https://github.com/desyncr) and [jedahan](https://github.com/jedahan).
 
-A big thank you to those who have previously [contributed](https://github.com/frmendes/geometry/graphs/contributors), [jedahan](https://github.com/jedahan) in particular.
+A big thank you to those who have previously [contributed](https://github.com/frmendes/geometry/graphs/contributors).

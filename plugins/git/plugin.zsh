@@ -1,6 +1,7 @@
 # Color definitions
 GEOMETRY_COLOR_GIT_DIRTY=${GEOMETRY_COLOR_GIT_DIRTY:-red}
 GEOMETRY_COLOR_GIT_CLEAN=${GEOMETRY_COLOR_GIT_CLEAN:-green}
+GEOMETRY_COLOR_GIT_BARE=${GEOMETRY_COLOR_GIT_BARE:-blue}
 GEOMETRY_COLOR_GIT_CONFLICTS_UNSOLVED=${GEOMETRY_COLOR_GIT_CONFLICTS_UNSOLVED:-red}
 GEOMETRY_COLOR_GIT_CONFLICTS_SOLVED=${GEOMETRY_COLOR_GIT_CONFLICTS_SOLVED:-green}
 GEOMETRY_COLOR_GIT_BRANCH=${GEOMETRY_COLOR_GIT_BRANCH:-242}
@@ -8,6 +9,7 @@ GEOMETRY_COLOR_GIT_BRANCH=${GEOMETRY_COLOR_GIT_BRANCH:-242}
 # Symbol definitions
 GEOMETRY_SYMBOL_GIT_DIRTY=${GEOMETRY_SYMBOL_GIT_DIRTY:-"⬡"}
 GEOMETRY_SYMBOL_GIT_CLEAN=${GEOMETRY_SYMBOL_GIT_CLEAN:-"⬢"}
+GEOMETRY_SYMBOL_GIT_BARE=${GEOMETRY_SYMBOL_GIT_BARE:-"⬢"}
 GEOMETRY_SYMBOL_GIT_REBASE=${GEOMETRY_SYMBOL_GIT_REBASE:-"\uE0A0"}
 GEOMETRY_SYMBOL_GIT_UNPULLED=${GEOMETRY_SYMBOL_GIT_UNPULLED:-"⇣"}
 GEOMETRY_SYMBOL_GIT_UNPUSHED=${GEOMETRY_SYMBOL_GIT_UNPUSHED:-"⇡"}
@@ -17,6 +19,7 @@ GEOMETRY_SYMBOL_GIT_CONFLICTS_UNSOLVED=${GEOMETRY_SYMBOL_GIT_CONFLICTS_UNSOLVED:
 # Combine color and symbols
 GEOMETRY_GIT_DIRTY=$(prompt_geometry_colorize $GEOMETRY_COLOR_GIT_DIRTY $GEOMETRY_SYMBOL_GIT_DIRTY)
 GEOMETRY_GIT_CLEAN=$(prompt_geometry_colorize $GEOMETRY_COLOR_GIT_CLEAN $GEOMETRY_SYMBOL_GIT_CLEAN)
+GEOMETRY_GIT_BARE=$(prompt_geometry_colorize $GEOMETRY_COLOR_GIT_BARE $GEOMETRY_SYMBOL_GIT_BARE)
 GEOMETRY_GIT_REBASE=$GEOMETRY_SYMBOL_GIT_REBASE
 GEOMETRY_GIT_UNPULLED=$GEOMETRY_SYMBOL_GIT_UNPULLED
 GEOMETRY_GIT_UNPUSHED=$GEOMETRY_SYMBOL_GIT_UNPUSHED
@@ -78,13 +81,13 @@ prompt_geometry_git_rebase_check() {
 }
 
 prompt_geometry_git_remote_check() {
-  local_commit=$(git rev-parse "@" 2>&1)
-  remote_commit=$(git rev-parse "@{u}" 2>&1)
-  common_base=$(git merge-base "@" "@{u}" 2>&1) # last common commit
+  local_commit=$(git rev-parse "@" 2>/dev/null)
+  remote_commit=$(git rev-parse "@{u}" 2>/dev/null)
 
-  if [[ $local_commit == $remote_commit ]]; then
+  if [[ $local_commit == "@" || $local_commit == $remote_commit ]]; then
     echo ""
   else
+    common_base=$(git merge-base "@" "@{u}" 2>/dev/null) # last common commit
     if [[ $common_base == $remote_commit ]]; then
       echo $GEOMETRY_GIT_UNPUSHED
     elif [[ $common_base == $local_commit ]]; then
@@ -142,31 +145,40 @@ prompt_geometry_git_conflicts() {
 }
 
 geometry_prompt_git_setup() {
+  (( $+commands[git] )) || return 1
+}
+
+geometry_prompt_git_check() {
+  git rev-parse --git-dir > /dev/null 2>&1 || return 1
 }
 
 geometry_prompt_git_render() {
-  if git rev-parse --git-dir > /dev/null 2>&1; then
-    if $PROMPT_GEOMETRY_GIT_CONFLICTS ; then
-      conflicts="$(prompt_geometry_git_conflicts)"
-    fi
-
-    if $PROMPT_GEOMETRY_GIT_TIME; then
-      local git_time_since_commit=$(prompt_geometry_git_time_since_commit)
-      if [[ -n $git_time_since_commit ]]; then
-          time=" $git_time_since_commit $GEOMETRY_GIT_SEPARATOR"
-      fi
-    fi
-
-    local render="$(prompt_geometry_git_symbol)"
-
-    if [[ -n $render ]]; then
-      render+=" "
-    fi
-
-    render+="$(prompt_geometry_git_branch) ${conflicts}${GEOMETRY_GIT_SEPARATOR}${time} $(prompt_geometry_git_status)"
-
-    echo -n $render
+  # Check if we are in a bare repo
+  if [[ $(command git rev-parse --is-inside-work-tree 2>/dev/null) == "false" ]] ; then
+    echo -n "$GEOMETRY_GIT_BARE"
+    return
   fi
+
+  if $PROMPT_GEOMETRY_GIT_CONFLICTS ; then
+    conflicts="$(prompt_geometry_git_conflicts)"
+  fi
+
+  if $PROMPT_GEOMETRY_GIT_TIME; then
+    local git_time_since_commit=$(prompt_geometry_git_time_since_commit)
+    if [[ -n $git_time_since_commit ]]; then
+        time=" $git_time_since_commit $GEOMETRY_GIT_SEPARATOR"
+    fi
+  fi
+
+  local render="$(prompt_geometry_git_symbol)"
+
+  if [[ -n $render ]]; then
+    render+=" "
+  fi
+
+  render+="$(prompt_geometry_git_branch) ${conflicts}${GEOMETRY_GIT_SEPARATOR}${time} $(prompt_geometry_git_status)"
+
+  echo -n $render
 }
 
 # Self-register plugin
